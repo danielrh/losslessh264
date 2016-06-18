@@ -195,23 +195,8 @@ uint16_t MacroblockModel::getAndUpdateMacroblockLumaNumNonzeros() {
             nzPriors.above += !!coefPriors.above;
             nzPriors.past += !!coefPriors.past;
         }
-        std::cout << "<{";
-        if (nzPriors.has_left) {
-            std::cout << (int)nzPriors.left << ",";
-        } else {
-            std::cout << "X,";
-        }
-        if (nzPriors.has_above) {
-            std::cout << (int)nzPriors.above << ",";
-        } else {
-            std::cout << "X,";
-        }
-        if (nzPriors.has_past) {
-            std::cout << (int)nzPriors.past;
-        } else {
-            std::cout << "X";
-        }
-        std::cout << "} " << (int)mb->numSubLumaNonzeros_[i];
+        std::cout << "<";
+        std::cout << (int)mb->numSubLumaNonzeros_[i];
         std::cout << "> ";
 
         int numCoef = 15;
@@ -225,26 +210,11 @@ uint16_t MacroblockModel::getAndUpdateMacroblockLumaNumNonzeros() {
         }
         for (int j = 0; j <= numCoef; ++j) {
             int coef = WelsDec::g_kuiZigzagScan[j];
-            SingleCoefNeighbors priors = priorCoef<16>(i, coef, 0);
-            std::cout << "[";
-            if (priors.has_left) {
-                std::cout << (int)!!priors.left << ",";
-            } else {
-                std::cout << "x,";
-            }
-            if (priors.has_above) {
-                std::cout << (int)!!priors.above << ",";
-            } else {
-                std::cout << "x,";
-            }
-            if (priors.has_past) {
-                std::cout << (int)!!priors.past;
-            } else {
-                std::cout << "x";
-            }
             int full_index = (i) * 16 + coef;
-            std::cout << "] " << !!mb->odata.lumaAC[full_index];
-            if (j < numCoef) {
+
+            SingleCoefNeighbors priors = priorCoef<16>(i, coef, 0);
+            std::cout << !!mb->odata.lumaAC[full_index];
+            if (j <= numCoef) {
                 std::cout << " ";
             }
         }
