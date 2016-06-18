@@ -318,8 +318,10 @@ int32_t ParsePredWeightedTable (PBitStringAux pBs, PSliceHeader pSh) {
       }
 
     }
+    if (keSt != B_SLICE)
+      break;
     ++iList;
-  } while (iList < LIST_1);//TODO: SUPPORT LIST_A
+  } while (iList < LIST_A);
   return ERR_NONE;
 }
 
@@ -1256,6 +1258,9 @@ int32_t InitialDqLayersContext (PWelsDecoderContext pCtx, const int32_t kiMaxWid
     pCtx->sMb.pRefIndex[i][0] = (int8_t (*)[MB_BLOCK4x4_NUM])pMa->WelsMallocz (pCtx->sMb.iMbWidth * pCtx->sMb.iMbHeight *
                                 sizeof (
                                   int8_t) * MB_BLOCK4x4_NUM, "pCtx->sMb.pRefIndex[][]");
+    pCtx->sMb.pRefIndex[i][1] = (int8_t (*)[MB_BLOCK4x4_NUM])pMa->WelsMallocz (pCtx->sMb.iMbWidth * pCtx->sMb.iMbHeight *
+                                sizeof (
+                                  int8_t) * MB_BLOCK4x4_NUM, "pCtx->sMb.pRefIndex[][]");
     pCtx->sMb.pLumaQp[i] = (int8_t*)pMa->WelsMallocz (pCtx->sMb.iMbWidth * pCtx->sMb.iMbHeight * sizeof (int8_t),
                            "pCtx->sMb.pLumaQp[]");
     pCtx->sMb.pNoSubMbPartSizeLessThan8x8Flag[i] = (bool*)pMa->WelsMallocz (pCtx->sMb.iMbWidth * pCtx->sMb.iMbHeight *
@@ -1316,6 +1321,7 @@ int32_t InitialDqLayersContext (PWelsDecoderContext pCtx, const int32_t kiMaxWid
                            ((NULL == pCtx->sMb.pMbType[i]) ||
                             (NULL == pCtx->sMb.pMv[i][0]) ||
                             (NULL == pCtx->sMb.pRefIndex[i][0]) ||
+                            (NULL == pCtx->sMb.pRefIndex[i][1]) ||
                             (NULL == pCtx->sMb.pLumaQp[i]) ||
                             (NULL == pCtx->sMb.pChromaQp[i]) ||
                             (NULL == pCtx->sMb.pMvd[i][0]) ||
@@ -1377,6 +1383,12 @@ void UninitialDqLayersContext (PWelsDecoderContext pCtx) {
       pMa->WelsFree (pCtx->sMb.pRefIndex[i][0], "pCtx->sMb.pRefIndex[][]");
 
       pCtx->sMb.pRefIndex[i][0] = NULL;
+    }
+
+    if (pCtx->sMb.pRefIndex[i][1]) {
+      pMa->WelsFree (pCtx->sMb.pRefIndex[i][1], "pCtx->sMb.pRefIndex[][]");
+
+      pCtx->sMb.pRefIndex[i][1] = NULL;
     }
 
     if (pCtx->sMb.pNoSubMbPartSizeLessThan8x8Flag[i]) {
@@ -2091,6 +2103,7 @@ void InitCurDqLayerData (PWelsDecoderContext pCtx, PDqLayer pCurDq) {
     pCurDq->pSliceIdc       = pCtx->sMb.pSliceIdc[0];
     pCurDq->pMv[0]          = pCtx->sMb.pMv[0][0];
     pCurDq->pRefIndex[0]    = pCtx->sMb.pRefIndex[0][0];
+    pCurDq->pRefIndex[1]    = pCtx->sMb.pRefIndex[0][1];
     pCurDq->pNoSubMbPartSizeLessThan8x8Flag = pCtx->sMb.pNoSubMbPartSizeLessThan8x8Flag[0];
     pCurDq->pTransformSize8x8Flag = pCtx->sMb.pTransformSize8x8Flag[0];
     pCurDq->pLumaQp         = pCtx->sMb.pLumaQp[0];

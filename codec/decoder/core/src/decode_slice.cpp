@@ -102,6 +102,7 @@ static void initRTDFromDecoderState(DecodedMacroblock &rtd,
         rtd.uiSubMbType[i] = pCurLayer->pSubMbType[iMbXy][i];
     }
     rtd.uiNumRefIdxL0Active = pSliceHeader->uiRefCount[0]; // Number of reference frames.
+    rtd.uiNumRefIdxL1Active = pSliceHeader->uiRefCount[1]; // Number of reference frames l1.
     rtd.uiLumaQp = pCurLayer->pLumaQp[iMbXy];
 
     initCoeffsFromCoefPtr(rtd, pCurLayer->pScaledTCoeffQuant[iMbXy]);
