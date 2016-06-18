@@ -5,6 +5,7 @@
 #include "decoder_context.h"
 #include "wels_common_defs.h"
 #include "decoded_macroblock.h"
+#include "wels_common_basis.h"
 
 void Neighbors::init(const FreqImage *f, int x, int y) {
     using namespace Nei;
@@ -162,6 +163,10 @@ void MacroblockModel::initCurrentMacroblock(
     this->n.init(f, mbx, mby);
 }
 
+#include <iostream>
+
+extern const int rasterTo8x8OrderLuma[16];
+
 uint16_t MacroblockModel::getAndUpdateMacroblockLumaNumNonzeros() {
     uint16_t retval = 0;
     bool emit_dc = (MB_TYPE_INTRA16x16 != mb->uiMbType);
@@ -174,6 +179,78 @@ uint16_t MacroblockModel::getAndUpdateMacroblockLumaNumNonzeros() {
             }
         }
     }
+    for (int i = 0; i < 16; ++i) {
+        if (!mb->numSubLumaNonzeros_[i]) {
+            continue; //std::cout << "no nonzeros ";
+        }
+        SingleCoefNeighbors nzPriors = {};
+        for (int coef = 0; coef < 15; ++coef) {
+            SingleCoefNeighbors coefPriors = priorCoef<16>(i, coef, 0);
+            if (coef == 0) {
+                nzPriors.has_left = coefPriors.has_left;
+                nzPriors.has_above = coefPriors.has_above;
+                nzPriors.has_past = coefPriors.has_past;
+            }
+            nzPriors.left += !!coefPriors.left;
+            nzPriors.above += !!coefPriors.above;
+            nzPriors.past += !!coefPriors.past;
+        }
+        std::cout << "<{";
+        if (nzPriors.has_left) {
+            std::cout << (int)nzPriors.left << ",";
+        } else {
+            std::cout << "X,";
+        }
+        if (nzPriors.has_above) {
+            std::cout << (int)nzPriors.above << ",";
+        } else {
+            std::cout << "X,";
+        }
+        if (nzPriors.has_past) {
+            std::cout << (int)nzPriors.past;
+        } else {
+            std::cout << "X";
+        }
+        std::cout << "} " << (int)mb->numSubLumaNonzeros_[i];
+        std::cout << "> ";
+
+        int numCoef = 15;
+        for (int j = 15; j > 0; --j) {
+            int coef = WelsDec::g_kuiZigzagScan[j];
+            int full_index = (i) * 16 + coef;
+            if (mb->odata.lumaAC[full_index]) {
+                break;
+            }
+            numCoef--;
+        }
+        for (int j = 0; j <= numCoef; ++j) {
+            int coef = WelsDec::g_kuiZigzagScan[j];
+            SingleCoefNeighbors priors = priorCoef<16>(i, coef, 0);
+            std::cout << "[";
+            if (priors.has_left) {
+                std::cout << (int)!!priors.left << ",";
+            } else {
+                std::cout << "x,";
+            }
+            if (priors.has_above) {
+                std::cout << (int)!!priors.above << ",";
+            } else {
+                std::cout << "x,";
+            }
+            if (priors.has_past) {
+                std::cout << (int)!!priors.past;
+            } else {
+                std::cout << "x";
+            }
+            int full_index = (i) * 16 + coef;
+            std::cout << "] " << !!mb->odata.lumaAC[full_index];
+            if (j < numCoef) {
+                std::cout << " ";
+            }
+        }
+        std::cout << std::endl;
+    }
+
     mb->numLumaNonzeros_ = retval;
     return retval;
 }
