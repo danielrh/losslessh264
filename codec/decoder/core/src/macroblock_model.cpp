@@ -179,6 +179,7 @@ uint16_t MacroblockModel::getAndUpdateMacroblockLumaNumNonzeros() {
             }
         }
     }
+    if(false)
     for (int i = 0; i < 16; ++i) {
         if (!mb->numSubLumaNonzeros_[i]) {
             continue; //std::cout << "no nonzeros ";

@@ -2853,6 +2853,10 @@ int32_t WelsDecodeSliceForRecoding(PWelsDecoderContext pCtx,
   fprintf(stderr, "READY skiprun=%d ; origSkip%d ; which_block=%d curSkip=%d\n", rtd.iMbSkipRun, origSkipped, (int)(uint16_t)which_block, (int)curSkipped);
 #endif
   EncoderState es;
+  int old_cabac_flag = pCtx->pPps->bEntropyCodingModeFlag;
+#if 0//def CABAC_TRANSCODE
+  pCtx->pPps->bEntropyCodingModeFlag = 1;
+#endif
 #ifndef CABAC_HACK
   if (pCtx->pPps->bEntropyCodingModeFlag) {
 #endif
@@ -2879,7 +2883,11 @@ int32_t WelsDecodeSliceForRecoding(PWelsDecoderContext pCtx,
 #endif
     BsWriteUE (&es.wrBs, origSkipped);
   }
-  if (!pCtx->pPps->bEntropyCodingModeFlag) {
+  if (!pCtx->pPps->bEntropyCodingModeFlag
+#if 0//def CABAC_TRANSCODE
+      && false
+#endif
+) {
     EmitDefBitsToOMovie emission;
     copySBitStringAux(es.wrBs, emission);
   }
@@ -2929,7 +2937,12 @@ int32_t WelsDecodeSliceForRecoding(PWelsDecoderContext pCtx,
   bool isCabac = pCurLayer->sLayerInfo.pPps->bEntropyCodingModeFlag;
   pCurLayer->sLayerInfo.pPps->bEntropyCodingModeFlag = false;
   int32_t iRet = pDecMbFunc (pCtx,  pNalCur, uiEosFlag, &rtd);
+#if 0//def CABAC_TRANSCODE
+  pCurLayer->sLayerInfo.pPps->bEntropyCodingModeFlag = true;
+  //pCurLayer->sLayerInfo.pPps->bEntropyCodingModeFlag = isCabac; //FIXME
+#else
   pCurLayer->sLayerInfo.pPps->bEntropyCodingModeFlag = isCabac;
+#endif
 #ifdef DEBUG_PRINTS
   fprintf(stderr, "EOSTEST which_block=%d origSkipped=%d skip=%d endofslice=%d uiEosFlag=%d\n", which_block, origSkipped, pSlice->iMbSkipRun, endOfSlice, uiEosFlag);
 #endif
@@ -2949,6 +2962,7 @@ int32_t WelsDecodeSliceForRecoding(PWelsDecoderContext pCtx,
 #endif
 
   curSkipped--;
+  pCtx->pPps->bEntropyCodingModeFlag = old_cabac_flag;
   if (iRet != ERR_NONE) {
     return iRet;
   }
@@ -3054,7 +3068,11 @@ int32_t WelsDecodeSlice (PWelsDecoderContext pCtx, bool bFirstSliceInLayer, PNal
   int origSkipped = -1;
   int curSkipped = -1;
   static std::auto_ptr<EncoderState> esCabac(new EncoderState(10000000, pCurLayer->iMbWidth, pCurLayer->iMbHeight)); // FIXME: How to get size estimate of a slice?;
-  if (pCtx->pPps->bEntropyCodingModeFlag) {
+  if (pCtx->pPps->bEntropyCodingModeFlag
+#ifdef CABAC_TRANSCODE
+      || true
+#endif
+      ) {
     esCabac->reset();
     esCabac->cabacInitSlice(pSliceHeader);
   }
@@ -3124,7 +3142,12 @@ int32_t WelsDecodeSlice (PWelsDecoderContext pCtx, bool bFirstSliceInLayer, PNal
     pCurLayer->iMbXyIndex = iNextMbXyIndex;
     ++macroblockSliceIndex;
   } while (1);
-  if (pCtx->pPps->bEntropyCodingModeFlag) {
+
+  if (pCtx->pPps->bEntropyCodingModeFlag
+#if 0//def CABAC_TRANSCODE
+      || true
+#endif
+      ) {
     if (oMovie().isRecoding) {
       esCabac->cabacEncodeFlush();
       oMovie().def().padToByte(1);
@@ -3146,7 +3169,11 @@ int32_t WelsDecodeSlice (PWelsDecoderContext pCtx, bool bFirstSliceInLayer, PNal
           oMovie().tag(PIP_PADBYTE_TAG).emitBits(pBs[0].pEndBuf[-1] & ((1 << numPadBits) - 1), numPadBits);
       }
   }
-  if (pCtx->pPps->bEntropyCodingModeFlag) {
+  if (pCtx->pPps->bEntropyCodingModeFlag
+#if 0//def CABAC_TRANSCODE
+|| true
+#endif
+) {
     if (oMovie().isRecoding) {
         EmitDefBitsToOMovie emission;
         copySBitStringAux(esCabac->wrBs, emission, numPadBits, padbyte);
