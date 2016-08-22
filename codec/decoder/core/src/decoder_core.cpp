@@ -934,8 +934,12 @@ int32_t ParseSliceHeaderSyntaxs (PWelsDecoderContext pCtx, PBitStringAux pBs, co
 
   if (pPps->bEntropyCodingModeFlag) {
     if (pSliceHead->eSliceType != I_SLICE && pSliceHead->eSliceType != SI_SLICE) {
-      WELS_READ_VERIFY (BsGetUe (pBs, &uiCode));
-      pSliceHead->iCabacInitIdc = 2; //uiCode;
+      // WELS_READ_VERIFY (BsGetUe (pBs, &uiCode));
+      const char *cabac_idc_env = getenv("CABAC_IDC");
+      pSliceHead->iCabacInitIdc = 0; //uiCode;
+      if (cabac_idc_env) {
+        pSliceHead->iCabacInitIdc = atoi(cabac_idc_env);
+      }
       WELS_CHECK_SE_UPPER_ERROR (pSliceHead->iCabacInitIdc, SLICE_HEADER_CABAC_INIT_IDC_MAX, "cabac_init_idc",
                                  ERR_INFO_INVALID_CABAC_INIT_IDC);
     } else

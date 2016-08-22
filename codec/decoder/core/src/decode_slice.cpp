@@ -55,8 +55,6 @@
 
 #include "encoder_from_decoder.h"
 
-#define DEBUG_PRINTS
-
 void DecodedMacroblock::preInit(const WelsDec::PSlice pSlice) {
     WelsDec::PSliceHeader pSliceHeader = &pSlice->sSliceHeaderExt.sSliceHeader;
     iLastMbQp = pSlice->iLastMbQp;
@@ -3160,7 +3158,7 @@ int32_t WelsDecodeSlice (PWelsDecoderContext pCtx, bool bFirstSliceInLayer, PNal
       numPadBits = oMovie().def().padRemainder();
   }
   int padbyte = 0x0;
-  if (numPadBits) {
+  if (false && numPadBits) {
       if (oMovie().isRecoding) {
           BitStream::uint32E res = {};
           res = iMovie().tag(PIP_PADBYTE_TAG).scanBits(numPadBits);
@@ -3196,6 +3194,11 @@ int32_t WelsDecodeSlice (PWelsDecoderContext pCtx, bool bFirstSliceInLayer, PNal
     fprintf(stderr, "iUsedBits=%d iBits=%d bitsleft=%d bytesLeft=%ld, curBits=%d\n", iUsedBits, pBs->iBits, pBs->iBits - iUsedBits, pBs->pEndBuf - pBs->pCurBuf, pBs->iLeftBits);
   }
 #endif
+  static int which_slice = 0;
+  static long total_bytes = 0;
+  long new_total_bytes = oMovie().def().buffer.size();
+  printf("slice %d: %ld bytes\n", which_slice++, new_total_bytes - total_bytes);
+  total_bytes = new_total_bytes;
   return ERR_NONE;
 }
 
