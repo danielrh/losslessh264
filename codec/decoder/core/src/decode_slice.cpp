@@ -55,6 +55,8 @@
 
 #include "encoder_from_decoder.h"
 
+#define DEBUG_PRINTS
+
 void DecodedMacroblock::preInit(const WelsDec::PSlice pSlice) {
     WelsDec::PSliceHeader pSliceHeader = &pSlice->sSliceHeaderExt.sSliceHeader;
     iLastMbQp = pSlice->iLastMbQp;
@@ -2499,7 +2501,7 @@ int32_t WelsDecodeSliceForRecoding(PWelsDecoderContext pCtx,
   }
   BitStream::uint32E res;
   rtd.uiMbType = MB_TYPE_SKIP;
-  if (curSkipped == -1 || (pCtx->pPps->bEntropyCodingModeFlag)) {// always read the skip run for CABAC--since it can only skip one at most
+  if (curSkipped == -1 || (false&&pCtx->pPps->bEntropyCodingModeFlag)) {// always read the skip run for CABAC--since it can only skip one at most
 #ifdef DEBUG_PRINTS
     fprintf(stderr, "block=%d read skip&eos!\n", which_block);
 #endif
@@ -3069,7 +3071,7 @@ int32_t WelsDecodeSlice (PWelsDecoderContext pCtx, bool bFirstSliceInLayer, PNal
   int curSkipped = -1;
   static std::auto_ptr<EncoderState> esCabac(new EncoderState(10000000, pCurLayer->iMbWidth, pCurLayer->iMbHeight)); // FIXME: How to get size estimate of a slice?;
   if (pCtx->pPps->bEntropyCodingModeFlag
-#ifdef CABAC_TRANSCODE
+#if 0//def CABAC_TRANSCODE
       || true
 #endif
       ) {

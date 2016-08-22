@@ -1305,7 +1305,7 @@ int32_t ParsePps (PWelsDecoderContext pCtx, PPps pPpsList, PBitStringAux pBsAux,
   }
 
   WELS_READ_VERIFY (BsGetOneBit (pBsAux, &uiCode)); //entropy_coding_mode_flag
-  pPps->bEntropyCodingModeFlag = !!uiCode;
+  pPps->bEntropyCodingModeFlag = true;//!!uiCode;
   WELS_READ_VERIFY (BsGetOneBit (pBsAux, &uiCode)); //bottom_field_pic_order_in_frame_present_flag
   pPps->bPicOrderPresentFlag   = !!uiCode;
 
